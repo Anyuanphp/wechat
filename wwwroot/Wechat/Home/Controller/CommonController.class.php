@@ -61,8 +61,8 @@ class CommonController extends Controller
         $access_token = $this->getAccessToken();
         $url   = 'https://api.weixin.qq.com/cgi-bin/getcallbackip?access_token='.$access_token.'';
         $res = $this->httpCurlRequest($url);
-        $arr = json_decode($res,true);
-        dump($arr);
+//        $arr = json_decode($res,true);
+        dump($res);
     }
 
 }

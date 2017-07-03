@@ -110,6 +110,9 @@ class IndexController extends CommonController  {
                 case '再见':
                     $content = '欢迎下次光临';
                     break;
+                case '账单':
+                    $this->sendTemplateMsg($postObj);
+                    break;
                 default :
                     $content = '啦啦啦，我是可爱的卖报家！';
                     break;
@@ -121,7 +124,7 @@ class IndexController extends CommonController  {
     }
 
     //回复模板信息
-    public function templateMsg($postObj)
+    public function sendTemplateMsg($postObj)
     {
         $openId  = 'oeWizwSdYbf1sbQsY0ONiXkhUtww';
 //        $content = 'openId:'.$postObj->FromUserName;
@@ -150,7 +153,7 @@ class IndexController extends CommonController  {
         //组装群发数据接口
         $array  =  [
             'touser' => $touser,
-            'text'   =>['content'=>'welcome zay wechat'],
+            'text'   =>['content'=>'Welcome my wechat'],
             'msgtype'=>'text',
         ];
         $res = $this->httpCurlRequest($url,'post',json_encode($array));
@@ -159,6 +162,128 @@ class IndexController extends CommonController  {
         //将数据转json 然后调用curl
 
     }
+
+
+    //微信基本授权  -- 获取用户同意授权的code
+    public function getBaseInfo()
+    {
+        $app_id = C('APP_ID');
+
+        //请求回调的方法 微信会将获取到的信息传递到该方法里面
+        $redirect_uri = urlencode('http://weixin.echophp.top/index/getUserOpenId');
+
+        //拼凑url
+        /* scope的参数有两个
+            snsapi_base （不弹出授权页面，直接跳转，只能获取用户openid），
+            snsapi_userinfo （弹出授权页面  可通过openid拿到昵称、性别、所在地)*/
+
+        $url =  'https://open.weixin.qq.com/connect/oauth2/authorize?appid='.$app_id.'&redirect_uri='.$redirect_uri.'&response_type=code&scope=snsapi_base&state=123#wechat_redirect';
+
+        //跳转
+        header('location:'.$url);
+
+    }
+
+    //微信基本授权  -- 获取网页授权的 access_token
+    public function getUserOpenId()
+    {
+
+        //获取用户同意授权后的code
+        $code   = $_GET['code'];
+        $state   = $_GET['state'];
+
+        echo $code;
+        echo $state;
+        //拼凑请求用户信息的url
+        $url    = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid='.C('APP_ID').'&secret='.C('SECRET').'&code='.$code.'&grant_type=authorization_code';
+
+//        可以在此显示活动页面
+//        $this->display('activity.html');
+//           注：     **活动页面地址应该是 getBaseInfo() 方法，由该方法跳转到此方法
+
+        //调用方法请求用户信息
+        $info   = $this->httpCurlRequest($url,'get');
+
+        /*
+        返回数据格式：
+            { "access_token":"ACCESS_TOKEN",
+             "expires_in":7200,
+             "refresh_token":"REFRESH_TOKEN",
+             "openid":"OPENID",
+             "scope":"SCOPE" }
+        */
+        dump($info);
+
+
+    }
+
+
+    //微信详细授权  -- 获取用户同意授权的code
+    public function getDetailInfo()
+    {
+        $app_id = C('APP_ID');
+
+        //请求回调的方法 微信会将获取到的信息传递到该方法里面
+        $redirect_uri = urlencode('http://weixin.echophp.top/index/getUserInfo');
+
+        //拼凑url
+        /* scope的参数有两个
+            snsapi_base （不弹出授权页面，直接跳转，只能获取用户openid），
+            snsapi_userinfo （弹出授权页面  可通过openid拿到昵称、性别、所在地)*/
+
+        $url =  'https://open.weixin.qq.com/connect/oauth2/authorize?appid='.$app_id.'&redirect_uri='.$redirect_uri.'&response_type=code&scope=snsapi_userinfo&state='.C('USER_NAME').'#wechat_redirect';
+
+        //跳转
+        header('location:'.$url);
+    }
+
+    //微信详细授权  -- 获取用户详细信息
+    public function getUserInfo()
+    {
+        //获取用户同意授权后的code
+        $code   = $_GET['code'];
+        $state  = $_GET['state'];
+
+        echo '同意授权的code:'.$code;
+        echo '传递的参数state:'.$state;
+
+        //拼凑请求access_token的url
+        $url    = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid='.C('APP_ID').'&secret='.C('SECRET').'&code='.$code.'&grant_type=authorization_code';
+
+        //获取基本参数
+        $result = $this->httpCurlRequest($url);
+
+        $openid       = $result['openid'];
+        $access_token = $result['access_token'];
+
+        //拼凑获取详细信息的url
+        $url    = 'https://api.weixin.qq.com/sns/userinfo?access_token='.$access_token.'&openid='.$openid.'&lang=zh_CN';
+
+        $user_info = $this->httpCurlRequest($url);
+
+//        可以在此显示活动页面
+//        $this->display('activity.html');
+//           注：     **活动页面地址应该是 getBaseInfo() 方法，由该方法跳转到此方法
+
+
+        /*
+        返回数据格式：
+           {    "openid":" OPENID",
+                 " nickname": NICKNAME,
+                 "sex":"1",
+                 "province":"PROVINCE"
+                 "city":"CITY",
+                 "country":"COUNTRY",
+                 "headimgurl":    "http://wx.qlogo.cn/mmopen/g3MonUZtNHkdmzicIlibx6iaFqAc56vxLSUfpb6n5WKSYVY0ChQKkiaJSgQ1dZuTOgvLLrhJbERQQ
+                4eMsv84eavHiaiceqxibJxCfHe/46",
+                "privilege":[ "PRIVILEGE1" "PRIVILEGE2"     ],
+                 "unionid": "o6_bmasdasdsad6_2sgVt7hMZOPfL"
+                }
+
+        */
+        dump($user_info);
+    }
+
 
 }
 
