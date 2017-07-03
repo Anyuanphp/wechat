@@ -48,7 +48,7 @@ class CommonController extends Controller
         }else{
             $res = $this->httpCurlRequest($url);
             session('access_token',$res['access_token']);
-            session('expire_time',time()+7200);
+            session('expire_time',time()+7000);
             return $res['access_token'];
         }
 

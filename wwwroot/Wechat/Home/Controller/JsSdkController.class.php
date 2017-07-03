@@ -12,12 +12,12 @@ class JsSdkController extends CommonController
         $url = 'https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token='.$access_token.'&type=jsapi';
 
         //缓存并返回获取到的jsapi_ticket
-        if(session('jsapi_ticket') && session('expire_time')>time()){
+        if(session('jsapi_ticket') && session('jsapi_ticket_expire_time')>time()){
             return session('jsapi_ticket');
         }else{
             $res = $this->httpCurlRequest($url);
             session('jsapi_ticket',$res['ticket']);
-            session('jsapi_ticket_expire_time',time()+7200);
+            session('jsapi_ticket_expire_time',time()+7000);
             return $res['ticket'];
         }
     }
@@ -49,7 +49,7 @@ class JsSdkController extends CommonController
         dump($noncestr);
         dump($temptime);
         dump($current_url);
-        $tempStr      = 'jsapi_ticket='.$jsapi_ticket.'&noncestr='.$noncestr.'&timestamp='.$temptime.'&url='.$current_url.'?params=value';
+        $tempStr      = 'jsapi_ticket='.$jsapi_ticket.'&noncestr='.$noncestr.'&timestamp='.$temptime.'&url='.$current_url.'';
 
         //生成JS-SDK权限验证的签名
         $signature    = sha1($tempStr);
