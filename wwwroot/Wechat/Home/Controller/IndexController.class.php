@@ -63,10 +63,16 @@ class IndexController extends CommonController  {
             $content      = '欢迎关注张安源的公众号!目前正在开发中...';
             $repalyObj->replyOneText($postObj,$content);
         }else if ( $event == 'click' ){
-            if($postObj->EventKey == 'clickMe'){
-                $this->sendMsgAll($postObj);
-            }else if($postObj->EventKey== 'introduceBlog'){
-                $content = 'This is introduceBlog event'.$postObj->FromUserName;
+            if($postObj->EventKey == 'sendAll'){
+                $this->sendMsgAll($postObj);exit;
+            }else if($postObj->EventKey == 'introduceBlog'){
+                $content = 'This is introduceBlog event || '.$postObj->FromUserName;
+            }else if($postObj->EventKey == 'pageCheck'){
+                $this->getDetailInfo();exit;
+            }else if($postObj->EventKey == 'tempTest'){
+                $this->sendTemplateMsg();exit;
+            }else if($postObj->EventKey == 'textAndPicture'){
+                $repalyObj->replyTextAndPicture($postObj,$this->getArrayData());exit;
             }
 //            $content = 'this is click event  ---- '.$postObj->EventKey;
             $repalyObj->replyOneText($postObj,$content);
@@ -80,22 +86,8 @@ class IndexController extends CommonController  {
     {
         $repalyObj = $this->getReplyObject();
         if($postObj->Content == '图文'){
-            $data = [
-                [
-                    'title'=>'我的博客',
-                    'description'=>'直道相思了无益 未妨惆怅是清狂',
-                    'picurl'=>'http://zay.echophp.top/photo/wo2.jpg',
-                    'url'  => 'http://www.echophp.top/'
-                ],
-                [
-                    'title'=>'zay.echophp.top博客',
-                    'description'=>'只要你不断走向远方， 它便一路相随。',
-                    'picur'=>'http://zay.echophp.top/photo/hai3.jpg',
-                    'url'  => 'http://zay.echophp.top/'
-                ],
 
-            ];
-            $repalyObj->replyTextAndPicture($postObj,$data);
+            $repalyObj->replyTextAndPicture($postObj,$this->getArrayData());
         } else{
             switch ($postObj->Content){
                 case '你好':
@@ -112,9 +104,10 @@ class IndexController extends CommonController  {
                     break;
                 case '账单':
                     $this->sendTemplateMsg($postObj);
+                    exit;
                     break;
                 default :
-                    $content = '啦啦啦，我是可爱的卖报家！';
+                    $content = '啦啦啦，我是卖报的小行家！';
                     break;
             }
             $repalyObj->replyOneText($postObj,$content);
@@ -124,12 +117,16 @@ class IndexController extends CommonController  {
     }
 
     //回复模板信息
-    public function sendTemplateMsg($postObj)
+    public function sendTemplateMsg()
     {
         $openId  = 'oeWizwSdYbf1sbQsY0ONiXkhUtww';
+//          $openId  = $postObj->FromUserName;
 //        $content = 'openId:'.$postObj->FromUserName;
 //        $this->getReplyObject()->replyOneText($postObj,$content);exit;
+
+        //微信自定义添加模板后的一个id
         $template_id = 't99dp_H6iZD-XE7sV_HRw6W6JY2M5H_rxv5ITtamubQ';
+
         $data = [
             'name'=>['value'=>'Anyuan','color'=>'#abcdef'],
             'money'=>['value'=>100,'color'=>'#173177'],
@@ -149,12 +146,13 @@ class IndexController extends CommonController  {
 
         $access_token = $this->getAccessToken();
         $url = 'https://api.weixin.qq.com/cgi-bin/message/mass/preview?access_token='.$access_token.'';
+//        $touser = $postObj->FromUserName;
         $touser = 'oeWizwSdYbf1sbQsY0ONiXkhUtww';
         //组装群发数据接口
         $array  =  [
             'touser' => $touser,
-            'text'   =>['content'=>'Welcome my wechat'],
-            'msgtype'=>'text',
+            'text'   =>['content'=>'This is for all people to test'],
+            "msgtype"=>"text"
         ];
         $res = $this->httpCurlRequest($url,'post',json_encode($array));
         dump($res);
@@ -187,7 +185,6 @@ class IndexController extends CommonController  {
     //微信基本授权  -- 获取网页授权的 access_token
     public function getUserOpenId()
     {
-
         //获取用户同意授权后的code
         $code   = $_GET['code'];
         $state   = $_GET['state'];
@@ -285,7 +282,51 @@ class IndexController extends CommonController  {
     }
 
 
+    private function getArrayData()
+    {
+        $data = [
+            [
+                'title'=>'我的博客',
+                'description'=>'直道相思了无益 未妨惆怅是清狂',
+                'picurl'=>'http://zay.echophp.top/images/weixinewm.png',
+                'url'  => 'http://www.echophp.top/'
+            ],
+            [
+                'title'=>'zay.echophp.top博客',
+                'description'=>'只要你不断走向远方， 它便一路相随。',
+                'picurl'=>'http://zay.echophp.top/images/weixinewm.png',
+                'url'  => 'http://zay.echophp.top/'
+            ],
 
+        ];
+        return $data;
+    }
+
+    public function rl()
+    {
+        $dataArr = $this->getArrayData();
+        $toUser       = 'oeWizwSdYbf1sbQsY0ONiXkhUtww';
+        $FromUserName = 'gh_f70efdc03887';
+        $template     = '<xml>
+                        <ToUserName><![CDATA[%s]]></ToUserName>
+                        <FromUserName><![CDATA[%s]]></FromUserName>
+                        <CreateTime>%s</CreateTime>
+                        <MsgType><![CDATA[%s]]></MsgType>
+                        <ArticleCount>'.count($dataArr).'</ArticleCount>
+                        <Articles> ';
+        foreach($dataArr as $v){
+            $template     .='<item>
+                        <Title><![CDATA['.$v["title"].']]></Title>
+                        <Description><![CDATA['.$v["description"].']]></Description>
+                        <PicUrl><![CDATA['.$v["picurl"].']]></PicUrl>
+                        <Url><![CDATA['.$v["url"].']]></Url>
+                        </item>';
+        }
+        $template     = '</Articles>
+                        </xml>';
+        echo sprintf($template,$toUser,$FromUserName,time(),'news');
+        exit;
+    }
 
 }
 

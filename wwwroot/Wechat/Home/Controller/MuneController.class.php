@@ -12,10 +12,30 @@ class MuneController extends CommonController
         $postArr = [
             'button'=>[
                 [
-                    //第一个一级菜单
-                    'name'=>urlencode('点击我'),
-                    'type'=>'click',
-                    'key' => 'clickMe',
+                    //第yi个一级菜单
+                    'name'=>urlencode('点击'),
+                    'sub_button'=>[
+                        [
+                            'name'=>urlencode('群发测试'),
+                            'type'=>'click',
+                            'key' => 'sendAll',
+                        ],
+                        [
+                            'name'=>urlencode('模板测试'),
+                            'type'=>'click',
+                            'key' => 'tempTest',
+                        ],
+                        [
+                            'name'=>urlencode('网页授权'),
+                            'type'=>'click',
+                            'key' => 'pageCheck',
+                        ],
+                        [
+                            'name'=>urlencode('图文测试'),
+                            'type'=>'click',
+                            'key' => 'textAndPicture',
+                        ]
+                    ]
                 ],
                 [
                     //第二个一级菜单
@@ -38,7 +58,7 @@ class MuneController extends CommonController
                     'name'=>urlencode('遇见你'),
                     'type'=>'view',
                     'url' =>'http://www.echophp.top',
-                ]
+                ],
 
             ],
         ];
