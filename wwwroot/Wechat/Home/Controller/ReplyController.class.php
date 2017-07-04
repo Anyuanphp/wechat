@@ -42,7 +42,7 @@ class ReplyController extends CommonController
                         <Url><![CDATA['.$v["url"].']]></Url>
                         </item>';
         }
-        $template     = '</Articles>
+        $template     .= '</Articles>
                         </xml>';
         echo sprintf($template,$toUser,$FromUserName,time(),'news');
         exit;

@@ -66,13 +66,13 @@ class IndexController extends CommonController  {
             if($postObj->EventKey == 'sendAll'){
                 $this->sendMsgAll($postObj);exit;
             }else if($postObj->EventKey == 'introduceBlog'){
-                $content = 'This is introduceBlog event || '.$postObj->FromUserName;
+                $content = 'toUser:|| '.$postObj->FromUserName.'|| FromUserName:'.$postObj->ToUserName;
             }else if($postObj->EventKey == 'pageCheck'){
                 $this->getDetailInfo();exit;
             }else if($postObj->EventKey == 'tempTest'){
                 $this->sendTemplateMsg();exit;
             }else if($postObj->EventKey == 'textAndPicture'){
-                $repalyObj->replyTextAndPicture($postObj,$this->getArrayData());exit;
+                $this->getReplyObject()->replyTextAndPicture($postObj,$this->getArrayData());exit;
             }
 //            $content = 'this is click event  ---- '.$postObj->EventKey;
             $repalyObj->replyOneText($postObj,$content);
@@ -281,12 +281,12 @@ class IndexController extends CommonController  {
         dump($user_info);
     }
 
-
+    //获取一个二维数组
     private function getArrayData()
     {
         $data = [
             [
-                'title'=>'我的博客',
+                'title'=>'直道相思了无益',
                 'description'=>'直道相思了无益 未妨惆怅是清狂',
                 'picurl'=>'http://zay.echophp.top/images/weixinewm.png',
                 'url'  => 'http://www.echophp.top/'
@@ -302,31 +302,6 @@ class IndexController extends CommonController  {
         return $data;
     }
 
-    public function rl()
-    {
-        $dataArr = $this->getArrayData();
-        $toUser       = 'oeWizwSdYbf1sbQsY0ONiXkhUtww';
-        $FromUserName = 'gh_f70efdc03887';
-        $template     = '<xml>
-                        <ToUserName><![CDATA[%s]]></ToUserName>
-                        <FromUserName><![CDATA[%s]]></FromUserName>
-                        <CreateTime>%s</CreateTime>
-                        <MsgType><![CDATA[%s]]></MsgType>
-                        <ArticleCount>'.count($dataArr).'</ArticleCount>
-                        <Articles> ';
-        foreach($dataArr as $v){
-            $template     .='<item>
-                        <Title><![CDATA['.$v["title"].']]></Title>
-                        <Description><![CDATA['.$v["description"].']]></Description>
-                        <PicUrl><![CDATA['.$v["picurl"].']]></PicUrl>
-                        <Url><![CDATA['.$v["url"].']]></Url>
-                        </item>';
-        }
-        $template     = '</Articles>
-                        </xml>';
-        echo sprintf($template,$toUser,$FromUserName,time(),'news');
-        exit;
-    }
 
 }
 
